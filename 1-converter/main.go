@@ -6,7 +6,14 @@ import (
 
 // const usdToEuro = 0.85
 // const usdToRub = 77.00
-var m = map[string]float64{"usdToEuro": 0.85, "usdToRub": 77.00}
+var rates = map[string]float64{
+	"usd_euro": 0.85,
+	"usd_rub":  77.00,
+	"euro_usd": 1.18,  // 1 / 0.85
+	"euro_rub": 90.59, // (1 / 0.85) * 77
+	"rub_usd":  0.013, // 1 / 77
+	"rub_euro": 0.011, // (1 / 77) * 0.85
+}
 
 // 1. Функция ввода и проверки валюты
 // Параметр forbidden нужен, чтобы целевая валюта не совпадала с исходной
@@ -15,11 +22,9 @@ func inputCurrency(label string, forbidden string) string {
 	for {
 		fmt.Printf("Введите %s валюту (usd, rub, euro): ", label)
 		fmt.Scan(&cur)
-		for key := range m {
-			if cur != key {
-				fmt.Println("Ошибка: некорректная валюта. Попробуйте еще раз.")
-				continue
-			}
+		if cur != "usd" && cur != "rub" && cur != "euro" {
+			fmt.Println("Ошибка: некорректная валюта. Попробуйте еще раз.")
+			continue
 		}
 		// Проверка: входит ли валюта в список разрешенных
 
@@ -48,35 +53,16 @@ func inputAmount() float64 {
 }
 
 // 3. Функция расчета (без использования map)
+
 func calculate(count float64, from string, to string) float64 {
-	// Конвертация, если исходная - USD
-	if from == "usd" {
-		if to == "euro" {
-			return count * m["usdToEuro"]
-		}
-		if to == "rub" {
-			return count * m["usdToRub"]
-		}
+	key := from + "_" + to
+	rate, exists := rates[key]
+
+	if !exists {
+		return count // Если пара не найдена, возвращаем исходную сумму
 	}
-	// Конвертация, если исходная - EURO
-	if from == "euro" {
-		if to == "usd" {
-			return count / m["usdToEuro"]
-		}
-		if to == "rub" {
-			return (count / m["usdToEuro"]) * m["usdToRub"]
-		}
-	}
-	// Конвертация, если исходная - RUB
-	if from == "rub" {
-		if to == "usd" {
-			return count / m["usdToRub"]
-		}
-		if to == "euro" {
-			return (count / m["usdToRub"]) * m["usdToEuro"]
-		}
-	}
-	return count
+
+	return count * rate
 }
 
 func main() {
