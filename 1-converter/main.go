@@ -54,9 +54,9 @@ func inputAmount() float64 {
 
 // 3. Функция расчета (без использования map)
 
-func calculate(count float64, from string, to string) float64 {
+func calculate(count float64, from string, to string, rates *map[string]float64) float64 {
 	key := from + "_" + to
-	rate, exists := rates[key]
+	rate, exists := (*rates)[key]
 
 	if !exists {
 		return count // Если пара не найдена, возвращаем исходную сумму
@@ -78,6 +78,6 @@ func main() {
 	to := inputCurrency("целевую", from)
 
 	// Расчет и вывод
-	result := calculate(count, from, to)
+	result := calculate(count, from, to, &rates)
 	fmt.Printf("Результат: %.2f %s\n", result, to)
 }
